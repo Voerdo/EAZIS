@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>Лексема: {{ lexeme.lemma }}</h2>
+    <div>
+        <a href="{{ url_for('view_dictionary') }}" class="btn btn-secondary">Назад к словарю</a>
+        <a href="{{ url_for('edit_lexeme', lexeme_id=lexeme.id) }}" class="btn">Редактировать</a>
+    </div>
+</div>
+
+<div style="background: #f7fafc; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+            <label style="color: #718096; font-size: 12px;">Лемма (начальная форма):</label>
+            <div style="font-size: 24px; font-weight: bold; color: #2d3748;">{{ lexeme.lemma }}</div>
+        </div>
+        <div>
+            <label style="color: #718096; font-size: 12px;">Часть речи:</label>
+            <div style="font-size: 18px; color: #4a5568;">{{ lexeme.pos }}</div>
+        </div>
+        <div>
+            <label style="color: #718096; font-size: 12px;">Основа (стем):</label>
+            <div style="font-family: monospace; font-size: 18px; background: #edf2f7; padding: 5px 10px; border-radius: 5px; display: inline-block;">{{ lexeme.stem }}</div>
+        </div>
+        <div>
+            <label style="color: #718096; font-size: 12px;">ID:</label>
+            <div style="font-family: monospace; color: #718096;">{{ lexeme.id }}</div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-bottom: 20px;">
+    <h3>Генерация словоформы</h3>
+    <div style="background: #f0fff4; padding: 20px; border-radius: 10px; margin-top: 10px;">
+        <form id="generateForm" style="display: flex; gap: 10px; align-items: end;">
+            <div style="flex: 1;">
+                <label>Окончание:</label>
+                <input type="text" id="ending" placeholder="Например: ам, ов, ей..." required>
+            </div>
+            <button type="submit" class="btn btn-success">Сгенерировать</button>
+        </form>
+        <div id="generationResult" style="margin-top: 15px; font-size: 18px;"></div>
+    </div>
+</div>
+
+<div>
+    <h3>Словоформы ({{ lexeme.wordforms|length }})</h3>
+    
+    {% if lexeme.wordforms %}
+    <div class="wordform-list">
+        {% for form in lexeme.wordforms %}
+        <div class="wordform-item">
+            <div>
+                <strong>{{ form.form or lexeme.stem + form.ending }}</strong>
+                <span style="color: #718096; margin-left: 10px;">{{ form.gram_info }}</span>
+            </div>
+            <code style="background: #edf2f7; padding: 2px 6px; border-radius: 3px;">+{{ form.ending }}</code>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: #718096; padding: 20px;">Нет сохраненных словоформ</p>
+    {% endif %}
+    
+    <div style="background: #fffaf0; padding: 20px; border-radius: 10px; margin-top: 15px;">
+        <h4>Добавить словоформу вручную</h4>
+        <form action="{{ url_for('add_wordform', lexeme_id=lexeme.id) }}" method="post" style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 10px; margin-top: 10px;">
+            <input type="text" name="ending" placeholder="Окончание" required>
+            <input type="text" name="gram_info" placeholder="Грамматическая информация (род, падеж, число...)" required>
+            <button type="submit" class="btn">Добавить</button>
+        </form>
+    </div>
+</div>
+
+<div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+    <form action="{{ url_for('delete_lexeme', lexeme_id=lexeme.id) }}" method="post" onsubmit="return confirm('Удалить эту лексему?');">
+        <button type="submit" class="btn btn-danger">Удалить лексему</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('generateForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const ending = document.getElementById('ending').value;
+    const resultDiv = document.getElementById('generationResult');
+    
+    const formData = new FormData();
+    formData.append('ending', ending);
+    
+    try {
+        const response = await fetch('{{ url_for('generate_form', lexeme_id=lexeme.id) }}', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            resultDiv.innerHTML = `<span style="color: #48bb78;">✓ Результат: <strong>${data.form}</strong></span>`;
+        } else {
+            resultDiv.innerHTML = `<span style="color: #f56565;">✗ ${data.error}</span>`;
+        }
+    } catch (err) {
+        resultDiv.innerHTML = `<span style="color: #f56565;">✗ Ошибка: ${err.message}</span>`;
+    }
+});
+</script>
+{% endblock %}

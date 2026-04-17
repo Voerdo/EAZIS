@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>Редактирование лексемы: {{ lexeme.lemma }}</h2>
+    <a href="{{ url_for('view_lexeme', lexeme_id=lexeme.id) }}" class="btn btn-secondary">Отмена</a>
+</div>
+
+<form method="post" style="max-width: 600px;">
+    <div class="form-group">
+        <label>Лемма (начальная форма):</label>
+        <input type="text" name="lemma" value="{{ lexeme.lemma }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label>Часть речи:</label>
+        <select name="pos" required>
+            {% for pos in pos_list %}
+            <option value="{{ pos }}" {% if lexeme.pos == pos %}selected{% endif %}>{{ pos }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label>Основа (стем):</label>
+        <input type="text" name="stem" value="{{ lexeme.stem }}">
+        <small style="color: #718096;">Основа слова без окончания</small>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <button type="submit" class="btn btn-success">Сохранить изменения</button>
+        <a href="{{ url_for('view_lexeme', lexeme_id=lexeme.id) }}" class="btn btn-secondary">Отмена</a>
+    </div>
+</form>
+
+<div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+    <h3>Управление словоформами</h3>
+    
+    {% if lexeme.wordforms %}
+    <table style="margin-top: 15px;">
+        <thead>
+            <tr>
+                <th>Форма</th>
+                <th>Окончание</th>
+                <th>Грам. информация</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in lexeme.wordforms %}
+            <tr>
+                <td>{{ form.form or lexeme.stem + form.ending }}</td>
+                <td><code>{{ form.ending }}</code></td>
+                <td>{{ form.gram_info }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #718096;">Нет словоформ</p>
+    {% endif %}
+</div>
+{% endblock %}

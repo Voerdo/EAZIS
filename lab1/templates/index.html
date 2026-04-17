@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if stats %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.total_lexemes }}</div>
+        <div class="stat-label">Лексем</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.total_forms }}</div>
+        <div class="stat-label">Словоформ</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.pos_distribution|length }}</div>
+        <div class="stat-label">Частей речи</div>
+    </div>
+</div>
+{% endif %}
+
+<div style="margin-top: 30px;">
+    <h3>Загрузка документа</h3>
+    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" style="margin-top: 15px;">
+        <div class="upload-area">
+            <input type="file" name="file" accept=".pdf" required style="margin-bottom: 15px;">
+            <p style="color: #718096; margin-bottom: 10px;">Формат файла: PDF</p>
+            <button type="submit" class="btn">Загрузить и обработать</button>
+        </div>
+    </form>
+</div>
+
+<div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div style="background: #f7fafc; padding: 20px; border-radius: 10px;">
+        <h3>Новый словарь</h3>
+        <form action="{{ url_for('new_dictionary') }}" method="post" style="margin-top: 15px;">
+            <div class="form-group">
+                <input type="text" name="name" placeholder="Название словаря" required>
+            </div>
+            <button type="submit" class="btn btn-success">Создать</button>
+        </form>
+    </div>
+    
+    <div style="background: #f7fafc; padding: 20px; border-radius: 10px;">
+        <h3>Загрузить существующий</h3>
+        <form action="{{ url_for('load_dictionary') }}" method="post" style="margin-top: 15px;">
+            <div class="form-group">
+                <select name="filename" required>
+                    <option value="">Выберите файл...</option>
+                    {% for dict in dictionaries %}
+                    <option value="{{ dict }}">{{ dict }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-secondary">Загрузить</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

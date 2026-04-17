@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>Добавление новой лексемы</h2>
+    <a href="{{ url_for('view_dictionary') }}" class="btn btn-secondary">Назад</a>
+</div>
+
+<form method="post" style="max-width: 600px;">
+    <div class="form-group">
+        <label>Лемма (начальная форма):</label>
+        <input type="text" name="lemma" placeholder="Например: книга, идти, красный" required>
+    </div>
+    
+    <div class="form-group">
+        <label>Часть речи:</label>
+        <select name="pos" required>
+            <option value="">Выберите...</option>
+            {% for pos in pos_list %}
+            <option value="{{ pos }}">{{ pos }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label>Основа:</label>
+        <input type="text" name="stem" placeholder="Например: книг-, ид-, красн-">
+        <small style="color: #718096;">Основа слова без окончания. Если не указана, будет использована лемма.</small>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <button type="submit" class="btn btn-success">Добавить лексему</button>
+        <a href="{{ url_for('view_dictionary') }}" class="btn btn-secondary">Отмена</a>
+    </div>
+</form>
+{% endblock %}
