@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <h3>Общая статистика</h3>
+        <ul class="list-group mb-4">
+            <li class="list-group-item d-flex justify-content-between">
+                <span>Документов:</span>
+                <strong>{{ stats.doc_count }}</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+                <span>Всего токенов:</span>
+                <strong>{{ stats.token_count }}</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+                <span>Уникальных лемм:</span>
+                <strong>{{ stats.unique_lemmas }}</strong>
+            </li>
+        </ul>
+        
+        <h4>Распределение по частям речи</h4>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Часть речи</th>
+                    <th>Количество</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pos, count in stats.pos_distribution %}
+                <tr>
+                    <td>{{ pos }}</td>
+                    <td>{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Топ 50 лемм</h3>
+            <a href="{{ url_for('export_frequency_json') }}" class="btn btn-sm btn-secondary">
+                <i class="bi bi-download"></i> Скачать JSON
+            </a>
+        </div>
+        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Лемма</th>
+                    <th>Часть речи</th>
+                    <th>Частота</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lemma, pos, freq in stats.top_lemmas %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><strong>{{ lemma }}</strong></td>
+                    <td><span class="badge text-black">{{ pos }}</span></td>
+                    <td>{{ freq }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>Полный частотный словарь</h4>
+        </div>
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Словоформа</th>
+                        <th>Лемма</th>
+                        <th>Часть речи</th>
+                        <th>Грам. признаки</th>
+                        <th>Абс. частота</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in freq_dict %}
+                    <tr>
+                        <td>{{ item.token }}</td>
+                        <td class="lemma">{{ item.lemma }}</td>
+                        <td><span class="pos-tag">{{ item.pos_rus }}</span></td>
+                        <td><small>{{ item.gram_rus }}</small></td>
+                        <td>{{ item.freq }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

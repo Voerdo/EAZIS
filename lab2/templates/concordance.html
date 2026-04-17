@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Конкордансный поиск</h2>
+        <p>Показ контекста (слева и справа) для искомого слова</p>
+        
+        <form method="POST" class="mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label>Слово</label>
+                    <input type="text" class="form-control" name="word" placeholder="Введите слово" 
+                           value="{{ word }}" required>
+                </div>
+                <div class="col-md-2">
+                    <label>Окно</label>
+                    <select class="form-select" name="window">
+                        <option value="3" {% if window == 3 %}selected{% endif %}>±3 слова</option>
+                        <option value="5" {% if window == 5 %}selected{% endif %}>±5 слов</option>
+                        <option value="7" {% if window == 7 %}selected{% endif %}>±7 слов</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Часть речи</label>
+                    <select class="form-select" name="pos_filter">
+                        {% for code, name in gram_categories.pos %}
+                        <option value="{{ code }}" {% if pos_filter == code %}selected{% endif %}>
+                            {{ name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Грам. фильтр</label>
+                    <input type="text" class="form-control" name="gram_filter" 
+                           placeholder="sing, plur и т.д."
+                           value="{{ gram_filter or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-secondary w-100">Поиск</button>
+                </div>
+            </div>
+        </form>
+        
+        {% if results %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>Найдено вхождений: {{ results|length }}</h4>
+
+        </div>
+        
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style="width: 35%">Левый контекст</th>
+                    <th style="width: 20%">Слово</th>
+                    <th style="width: 35%">Правый контекст</th>
+                    <th>Документ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td class="concordance-left">{{ r.left }}</td>
+                    <td class="concordance-center">{{ r.center }}</td>
+                    <td class="concordance-right">{{ r.right }}</td>
+                    <td><small>{{ r.document }}</small></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% elif results is not none %}
+        <div class="alert alert-warning">Слово не найдено в корпусе</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

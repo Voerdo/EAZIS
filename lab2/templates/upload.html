@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2>Загрузка нового документа</h2>
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Название документа</label>
+                        <input type="text" class="form-control" id="title" name="title" placeholder="Введите название">
+                    </div>
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Файл (TXT, PDF, DOC, DOCX, RTF)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".txt,.pdf,.docx,.rtf" required>
+                    </div>
+                    <button type="submit" class="btn btn-secondary">Загрузить и обработать</button>
+                    <a href="{{ url_for('index') }}" class="btn btn-light">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

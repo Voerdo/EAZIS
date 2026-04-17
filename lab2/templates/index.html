@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Корпус текстов: Досуг</h1>
+    </div>
+</div>
+
+{% if stats %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex gap-4">
+            <div>
+                <strong>Документов:</strong> {{ stats.doc_count }}
+            </div>
+            <div>
+                <strong>Словоупотреблений:</strong> {{ stats.token_count }}
+            </div>
+            <div>
+                <strong>Уникальных лемм:</strong> {{ stats.unique_lemmas }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <h3>Документы в корпусе</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Источник</th>
+                    <th>Дата добавления</th>
+                    <th>Слов</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                <tr>
+                    <td>{{ doc.id }}</td>
+                    <td>{{ doc.title }}</td>
+                    <td>{{ doc.source }}</td>
+                    <td>{{ doc.upload_date }}</td>
+                    <td>{{ doc.word_count }}</td>
+                    <td>
+                        <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-secondary">Просмотр</a>
+                        <form method="POST" action="{{ url_for('delete_document', doc_id=doc.id) }}" style="display: inline;" 
+                              onsubmit="return confirm('Удалить документ?')">
+                            <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

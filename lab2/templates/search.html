@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Поиск по корпусу</h2>
+        
+        <form method="POST" class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label>Слово</label>
+                    <input type="text" class="form-control" name="query" placeholder="Введите слово" 
+                           value="{{ query }}" required>
+                </div>
+                <div class="col-md-2">
+                    <label>Фильтр</label>
+                    <select class="form-select" name="search_type">
+                        <option value="token" {% if search_type == 'token' %}selected{% endif %}>По словоформе</option>
+                        <option value="lemma" {% if search_type == 'lemma' %}selected{% endif %}>По лемме</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Часть речи</label>
+                    <select class="form-select" name="pos_filter">
+                        {% for code, name in gram_categories.pos %}
+                        <option value="{{ code }}" {% if pos_filter == code %}selected{% endif %}>
+                            {{ name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Грам. фильтр</label>
+                    <input type="text" class="form-control" name="gram_filter" 
+                           placeholder="sing, plur и т.д." 
+                           value="{{ gram_filter or '' }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-secondary w-100">Поиск</button>
+                </div>
+            </div>
+        </form>
+        
+        {% if results %}
+        <h4>Результаты (найдено: {{ results|length }})</h4>
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    <th>Токен</th>
+                    <th>Лемма</th>
+                    <th>Часть речи</th>
+                    <th>Грам. признаки</th>
+                    <th>Предложение</th>
+                    <th>Документ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td><strong>{{ r.token }}</strong></td>
+                    <td class="lemma">{{ r.lemma }}</td>
+                    <td><span class="badge bg-secondary">{{ r.pos_rus }}</span></td>
+                    <td><small>{{ r.gram_rus }}</small></td>
+                    <td>{{ r.sentence_text[:100] }}...</td>
+                    <td>{{ r.title }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% elif results is not none %}
+        <div class="alert alert-warning">Ничего не найдено</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
