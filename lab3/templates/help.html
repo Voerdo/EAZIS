@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Справка — Синтаксический анализатор</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+        .header {
+            background: #333;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .header a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            background: #555;
+            border-radius: 0;
+            
+        }
+        .header a:hover { background: #777; }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .section {
+            background: white;
+            border-radius: 0;
+            padding: 30px;
+            margin-bottom: 25px;
+            
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        .section h3 {
+            color: #333;
+            margin: 20px 0 10px;
+            font-size: 18px;
+        }
+        .section p { margin-bottom: 10px; }
+        .section ul { margin-left: 20px; margin-bottom: 15px; }
+        .section li { margin-bottom: 8px; }
+        .code {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .highlight {
+            background: #e8f0fe;
+            padding: 15px;
+            border-left: 3px solid #333;
+            border-radius: 0;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1> Справка</h1>
+        <a href="/">На главную</a>
+    </div>
+    <div class="container">
+        <div class="section">
+            <h2> Быстрый старт</h2>
+            <p>1. На главной странице перетащите DOC или DOCX файл в область загрузки или нажмите на неё для выбора файла.</p>
+            <p>2. Дождитесь окончания анализа — система автоматически извлечёт текст, разобьёт его на предложения и построит синтаксические деревья.</p>
+            <p>3. Нажмите «Открыть» рядом с загруженным документом, чтобы увидеть список предложений.</p>
+            <p>4. Для каждого предложения доступны две визуализации:</p>
+            <ul>
+                <li><strong> Дерево зависимостей</strong> — показывает бинарные отношения между словами (главное → зависимое)</li>
+                <li><strong> Дерево составляющих</strong> — показывает иерархическую группировку слов во фразы (NP, VP, PP и т.д.)</li>
+            </ul>
+        </div>
+
+
+        <div class="section">
+            <h2> Дерево зависимостей</h2>
+            <p>Дерево зависимостей показывает, как слова в предложении связаны друг с другом бинарными отношениями <strong>«главное → зависимое»</strong>.</p>
+            
+            <h3>Режимы работы:</h3>
+            <ul>
+                <li><strong> Выбор</strong> — кликните на слово, чтобы увидеть и отредактировать его свойства (лемма, часть речи, член предложения)</li>
+                <li><strong> Перемещение</strong> — перетаскивайте слова для изменения их расположения на холсте</li>
+                <li><strong> Связь</strong> — создавайте новые синтаксические связи между словами, кликая сначала на главное слово, затем на зависимое</li>
+            </ul>
+
+            <h3>Управление:</h3>
+            <ul>
+                <li><strong>Колёсико мыши</strong> — масштабирование</li>
+                <li><strong>Ctrl + зажатая ЛКМ</strong> — панорамирование холста</li>
+                <li><strong>Двойной клик по связи</strong> — удаление связи</li>
+                <li><strong>Кнопки + / − / ⟲</strong> — масштабирование и сброс вида</li>
+            </ul>
+
+            <h3>Редактирование:</h3>
+            <p>Вы можете редактировать свойства слов и типы связей. Все изменения сохраняются в базу данных при нажатии кнопки <strong> Сохранить в БД</strong>.</p>
+        </div>
+
+        <div class="section">
+            <h2> Дерево составляющих</h2>
+            <p>Дерево составляющих (constituency tree) показывает <strong>иерархическую группировку слов во фразы</strong> (фразовые категории). В отличие от дерева зависимостей, оно не показывает стрелки между отдельными словами, а объединяет их в блоки.</p>
+            
+            <div class="highlight">
+                <strong>Основные фразовые категории:</strong><br>
+                NP (Noun Phrase) — именная группа<br>
+                VP (Verb Phrase) — глагольная группа<br>
+                PP (Prepositional Phrase) — предложная группа<br>
+                ADJP (Adjective Phrase) — группа прилагательного<br>
+                ADVP (Adverb Phrase) — группа наречия<br>
+                S — предложение
+            </div>
+
+            <p>Дерево отображается в горизонтальном формате с ветвями для наглядности. Вы можете экспортировать его в текстовый файл.</p>
+        </div>
+
+        <div class="section">
+            <h2>️ База данных</h2>
+            <p>Все данные хранятся в SQLite базе <code>syntax_analyzer.db</code>:</p>
+            <ul>
+                <li><strong>documents</strong> — загруженные документы (имя, дата, текст, размер)</li>
+                <li><strong>sentences</strong> — предложения из документов</li>
+                <li><strong>tokens</strong> — токены (слова) с морфологической и синтаксической информацией</li>
+                <li><strong>constituency_trees</strong> — деревья составляющих в скобочной нотации</li>
+            </ul>
+        </div>
+
+    </div>
+</body>
+</html>

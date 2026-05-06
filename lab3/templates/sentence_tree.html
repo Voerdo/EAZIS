@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Синтаксическое дерево предложения</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            border-radius: 0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .header-buttons button {
+            background-color: white;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 0;
+            
+            font-size: 14px;
+            margin-left: 10px;
+            
+        }
+        
+        .header-buttons button:hover {
+            background-color: #eee;
+        }
+        
+        .header-buttons button.save-btn {
+            background-color: #444;
+            color: white;
+        }
+        
+        .sentence-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 0;
+            margin-bottom: 20px;
+            
+        }
+        
+        .sentence-text {
+            font-size: 18px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 0;
+            border-left: 3px solid #333;
+            margin-bottom: 15px;
+        }
+        
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar button {
+            background-color: #666;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 0;
+            
+            font-size: 14px;
+        }
+        
+        .toolbar button.active {
+            background-color: #333;
+        }
+        
+        .mode-indicator {
+            background-color: #333;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 0;
+            margin-left: auto;
+        }
+        
+        .tree-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 0;
+            margin-bottom: 20px;
+            
+            height: 65vh; min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #treeCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background-color: #fafafa;
+        }
+        
+        .word-group {
+            
+        }
+        
+        .word-group:hover rect {
+            
+        }
+        
+        .word-group.selected rect {
+            stroke: #000;
+            stroke-width: 2px;
+            
+        }
+        
+        .word-group.dragging {
+            cursor: grabbing;
+            
+        }
+        
+        .edit-panel {
+            background-color: white;
+            padding: 20px;
+            border-radius: 0;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .edit-panel.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 0;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .relations-panel {
+            background-color: white;
+            padding: 20px;
+            border-radius: 0;
+        }
+        
+        .relations-list {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .relation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 0;
+            margin-bottom: 5px;
+        }
+        
+        .relation-item select {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 0;
+            margin: 0 10px;
+            min-width: 250px;
+        }
+        
+        .relation-delete {
+            color: #dc3545;
+            
+            font-size: 18px;
+            padding: 0 5px;
+        }
+        
+        .relation-delete:hover {
+            color: #c82333;
+        }
+        
+        .dependency-line {
+            stroke: #333;
+            stroke-width: 2;
+            fill: none;
+            
+        }
+        
+        .dependency-line:hover {
+            stroke: #000;
+            stroke-width: 3;
+            
+        }
+        
+        .dependency-label {
+            font-size: 12px;
+            fill: #333;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        
+        .zoom-controls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 5px;
+            z-index: 10;
+        }
+        
+        .zoom-controls button {
+            width: 40px;
+            height: 40px;
+            border-radius: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            
+            font-size: 18px;
+            
+            
+        }
+        
+        .zoom-controls button:hover {
+            background-color: #333;
+            color: white;
+            border-color: #333;
+        }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            
+            background-color: #222;
+            color: white;
+            padding: 20px;
+            border-radius: 0;
+            z-index: 1000;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: #222;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 0;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> Синтаксическое дерево</h1>
+            <div class="header-buttons">
+                <button onclick="toggleConstituencyTree()"> Дерево составляющих</button>
+                <button onclick="saveChanges()" class="save-btn"> Сохранить в БД</button>
+                <button onclick="window.close()">Назад</button>
+            </div>
+        </div>
+        
+        <div class="sentence-info">
+            <div class="sentence-text" id="sentenceText"></div>
+            <div class="toolbar">
+                <button onclick="setMode('select')" id="modeSelect" class="active"> Выбор</button>
+                <button onclick="setMode('move')" id="modeMove">Перемещение</button>
+                <button onclick="setMode('link')" id="modeLink"> Связь</button>
+                <button onclick="autoArrange()">По умолчанию</button>
+                <span class="mode-indicator" id="modeIndicator">Режим: выбор</span>
+            </div>
+        </div>
+        
+        <div class="tree-container" id="treeContainer">
+            <svg id="treeCanvas" width="100%" height="100%"></svg>
+            <div class="zoom-controls">
+                <button onclick="zoom(1.2)">+</button>
+                <button onclick="zoom(0.8)">-</button>
+                <button onclick="resetView()">⟲</button>
+            </div>
+        </div>
+        
+        <div class="edit-panel" id="editPanel">
+            <h3>Редактирование слова</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Слово</label>
+                    <input type="text" id="editTokenText">
+                </div>
+                <div class="form-group">
+                    <label>Лемма</label>
+                    <input type="text" id="editLemma">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Часть речи</label>
+                    <select id="editPos"></select>
+                </div>
+                <div class="form-group">
+                    <label>Член предложения</label>
+                    <select id="editMember">
+                        <option value="подлежащее">Подлежащее</option>
+                        <option value="сказуемое">Сказуемое</option>
+                        <option value="дополнение">Дополнение</option>
+                        <option value="определение">Определение</option>
+                        <option value="обстоятельство">Обстоятельство</option>
+                        <option value="-">Не определено</option>
+                    </select>
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="saveEdit()" class="save-btn">Сохранить</button>
+                <button onclick="cancelEdit()">Отмена</button>
+            </div>
+        </div>
+        
+        <div class="relations-panel">
+            <h3> Связи между словами</h3>
+            <div class="relations-list" id="relationsList"></div>
+        </div>
+    </div>
+    
+    <div id="loading" class="loading">Загрузка...</div>
+    <div id="tooltip" class="tooltip"></div>
+    
+    <script>
+        // Полный словарь связей spaCy с русскими пояснениями и английскими кодами
+        const DEP_LABELS = {
+            'ROOT': 'Корень (ROOT)',
+            'nsubj': 'Подлежащее (nsubj)',
+            'nsubjpass': 'Подлежащее пассив (nsubjpass)',
+            'dobj': 'Прямое дополнение (dobj)',
+            'iobj': 'Косвенное дополнение (iobj)',
+            'obj': 'Дополнение (obj)',
+            'attr': 'Атрибут (attr)',
+            'amod': 'Определение прилагательное (amod)',
+            'nummod': 'Числовое определение (nummod)',
+            'advmod': 'Обстоятельство наречие (advmod)',
+            'advcl': 'Придаточное обстоятельство (advcl)',
+            'det': 'Артикль/Определитель (det)',
+            'poss': 'Притяжательное местоимение (poss)',
+            'xcomp': 'Дополнение к сказуемому (xcomp)',
+            'acomp': 'Прилагательное сказуемое (acomp)',
+            'npadvmod': 'Именное обстоятельство (npadvmod)',
+            'pobj': 'Объект предлога (pobj)',
+            'prep': 'Предлог (prep)',
+            'pcomp': 'Предложное дополнение (pcomp)',
+            'relcl': 'Относительное придаточное (relcl)',
+            'conj': 'Союзная связь (conj)',
+            'cc': 'Сочинительный союз (cc)',
+            'mark': 'Маркер придаточного (mark)',
+            'aux': 'Вспомогательный глагол (aux)',
+            'auxpass': 'Вспомогательный пассив (auxpass)',
+            'neg': 'Отрицание (neg)',
+            'compound': 'Составное слово (compound)',
+            'intj': 'Междометие (intj)',
+            'parataxis': 'Паратаксис (parataxis)',
+            'appos': 'Приложение (appos)',
+            'case': 'Падеж (case)',
+            'ccomp': 'Придаточное дополнительное (ccomp)',
+            'acl': 'Определительное придаточное (acl)',
+            'clf': 'Классификатор (clf)',
+            'fixed': 'Фиксированное выражение (fixed)',
+            'flat': 'Плоская конструкция (flat)',
+            'list': 'Список (list)',
+            'dislocated': 'Вынесенный элемент (dislocated)',
+            'discourse': 'Дискурсивный элемент (discourse)',
+            'expl': 'Эксплетив (expl)',
+            'csubj': 'Подлежащее придаточное (csubj)',
+            'csubjpass': 'Подлежащее придаточное пассив (csubjpass)',
+            'agent': 'Агент (agent)',
+            'dep': 'Неопределенная зависимость (dep)'
+        };
+
+        // Части речи
+        const POS_OPTIONS = [
+            'существительное', 'глагол', 'прилагательное', 'наречие',
+            'местоимение', 'предлог', 'союз', 'междометие', 'артикль',
+            'числительное', 'имя собственное', 'вспомогательный глагол'
+        ];
+
+        const sentenceId = new URLSearchParams(location.search).get('id');
+        
+        let words = [];
+        let arcs = [];
+        let selectedId = null;
+        let positions = [];
+        let mode = 'select';
+        let dragging = null;
+        let linkingFrom = null;
+        
+        // Панорамирование и масштабирование
+        let transform = { x: 0, y: 0, scale: 1 };
+        let isPanning = false;
+        let panStart = { x: 0, y: 0 };
+
+        // Загрузка
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sentenceId) loadTree();
+            setupPanAndZoom();
+            initPosOptions();
+        });
+
+        function initPosOptions() {
+            const select = document.getElementById('editPos');
+            POS_OPTIONS.forEach(pos => {
+                const option = document.createElement('option');
+                option.value = pos;
+                option.textContent = pos;
+                select.appendChild(option);
+            });
+        }
+
+        function loadTree() {
+            showLoading();
+            fetch(`/api/sentence/${sentenceId}/tree`)
+                .then(res => res.json())
+                .then(data => {
+                    words = data.words || [];
+                    arcs = data.arcs || [];
+                    autoArrange();
+                    hideLoading();
+                })
+                .catch(err => {
+                    alert('Ошибка загрузки: ' + err.message);
+                    hideLoading();
+                });
+        }
+
+        function displayTree() {
+            const svg = document.getElementById('treeCanvas');
+            const container = document.getElementById('treeContainer');
+
+            svg.innerHTML = '';
+
+            // Calculate bounds for auto-fit viewBox
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            if (words.length > 0) {
+                words.forEach((_, i) => {
+                    const pos = positions[i];
+                    if (pos) {
+                        minX = Math.min(minX, pos.x - 70);
+                        minY = Math.min(minY, pos.y - 60);
+                        maxX = Math.max(maxX, pos.x + 70);
+                        maxY = Math.max(maxY, pos.y + 60);
+                    }
+                });
+                minX -= 50; minY -= 100; maxX += 50; maxY += 50;
+            } else {
+                minX = 0; minY = 0; maxX = container.clientWidth || 800; maxY = container.clientHeight || 600;
+            }
+
+            const contentWidth = Math.max(maxX - minX, 100);
+            const contentHeight = Math.max(maxY - minY, 100);
+
+            svg.setAttribute('viewBox', `${minX} ${minY} ${contentWidth} ${contentHeight}`);
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+            document.getElementById('sentenceText').textContent = 
+                words.map(w => w.text).join(' ');
+
+            const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            // viewBox handles scaling, no group transform needed
+
+            // Маркер стрелки
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            marker.setAttribute('id', 'arrow');
+            marker.setAttribute('markerWidth', '10');
+            marker.setAttribute('markerHeight', '10');
+            marker.setAttribute('refX', '9');
+            marker.setAttribute('refY', '5');
+            marker.setAttribute('orient', 'auto');
+            
+            const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            arrow.setAttribute('points', '0 0, 10 5, 0 10');
+            arrow.setAttribute('fill', '#333');
+            marker.appendChild(arrow);
+            defs.appendChild(marker);
+            mainGroup.appendChild(defs);
+
+            // Рисуем связи
+            arcs.forEach(arc => drawArc(mainGroup, arc));
+
+            // Рисуем слова
+            words.forEach((word, i) => drawWord(mainGroup, word, i));
+
+            svg.appendChild(mainGroup);
+            updateRelationsList();
+        }
+
+        function drawWord(group, word, index) {
+            const pos = positions[index];
+            if (!pos) return;
+
+            const id = word.data.find(d => d[0] === 'id')?.[1];
+            const lemma = word.data.find(d => d[0] === 'lemma')?.[1] || '';
+
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('class', 'word-group');
+            g.setAttribute('data-id', id);
+            g.setAttribute('data-index', index);
+            g.setAttribute('transform', `translate(${pos.x - 50}, ${pos.y - 35})`);
+
+            if (selectedId === id) g.classList.add('selected');
+
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('width', '100');
+            rect.setAttribute('height', '70');
+            rect.setAttribute('rx', '8');
+            rect.setAttribute('fill', '#333');
+            rect.setAttribute('stroke', '#fff');
+            rect.setAttribute('stroke-width', '2');
+            g.appendChild(rect);
+
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', '50');
+            text.setAttribute('y', '25');
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('fill', 'white');
+            text.setAttribute('font-weight', 'bold');
+            text.textContent = word.text;
+            g.appendChild(text);
+
+            const lemmaText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            lemmaText.setAttribute('x', '50');
+            lemmaText.setAttribute('y', '40');
+            lemmaText.setAttribute('text-anchor', 'middle');
+            lemmaText.setAttribute('fill', '#e8f0fe');
+            lemmaText.setAttribute('font-size', '10');
+            lemmaText.textContent = lemma;
+            g.appendChild(lemmaText);
+
+            const posText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            posText.setAttribute('x', '50');
+            posText.setAttribute('y', '55');
+            posText.setAttribute('text-anchor', 'middle');
+            posText.setAttribute('fill', '#ddd');
+            posText.setAttribute('font-size', '9');
+            posText.textContent = word.tag;
+            g.appendChild(posText);
+
+            // Подсказка при наведении
+            g.addEventListener('mouseover', (e) => {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.textContent = `${word.text} | ${lemma} | ${word.tag}`;
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.pageX + 10) + 'px';
+                tooltip.style.top = (e.pageY + 10) + 'px';
+            });
+            
+            g.addEventListener('mouseout', () => {
+                document.getElementById('tooltip').style.display = 'none';
+            });
+
+            g.addEventListener('mousedown', e => onWordMouseDown(e, index, id));
+            group.appendChild(g);
+        }
+
+        function drawArc(group, arc) {
+            const start = positions[arc.start];
+            const end = positions[arc.end];
+            if (!start || !end) return;
+
+            const x1 = start.x;
+            const y1 = start.y - 35;
+            const x2 = end.x;
+            const y2 = end.y - 35;
+            const midX = (x1 + x2) / 2;
+            const midY = Math.min(y1, y2) - 40;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M ${x1} ${y1} Q ${midX} ${midY}, ${x2} ${y2}`);
+            path.setAttribute('class', 'dependency-line');
+            path.setAttribute('stroke', '#666');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('marker-end', 'url(#arrow)');
+
+            // Двойной клик для удаления связи
+            path.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                if (confirm('Удалить эту связь?')) {
+                    arcs = arcs.filter(a => a !== arc);
+                    displayTree();
+                }
+            });
+
+            group.appendChild(path);
+
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('x', midX);
+            label.setAttribute('y', midY - 10);
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('class', 'dependency-label');
+            label.textContent = arc.label;
+            group.appendChild(label);
+        }
+
+        function onWordMouseDown(e, index, id) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (mode === 'move') {
+                // Перемещение узла
+                dragging = index;
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startPos = { ...positions[index] };
+
+                const move = (e) => {
+                    if (dragging === null) return;
+                    positions[dragging] = {
+                        x: startPos.x + (e.clientX - startX) / transform.scale,
+                        y: startPos.y + (e.clientY - startY) / transform.scale
+                    };
+                    displayTree();
+                };
+
+                const up = () => {
+                    dragging = null;
+                    document.removeEventListener('mousemove', move);
+                    document.removeEventListener('mouseup', up);
+                };
+
+                document.addEventListener('mousemove', move);
+                document.addEventListener('mouseup', up);
+
+            } else if (mode === 'link') {
+                // Создание связи
+                if (linkingFrom === null) {
+                    linkingFrom = index;
+                } else if (linkingFrom !== index) {
+                    // Проверяем, нет ли уже такой связи
+                    const exists = arcs.some(a => 
+                        (a.start === linkingFrom && a.end === index) ||
+                        (a.start === index && a.end === linkingFrom));
+                    
+                    if (!exists) {
+                        arcs.push({ start: linkingFrom, end: index, label: 'nsubj' });
+                    }
+                    linkingFrom = null;
+                    displayTree();
+                } else {
+                    linkingFrom = null;
+                }
+            } else if (mode === 'select') {
+                // Выбор для редактирования
+                selectWord(id, index);
+            }
+        }
+
+        function selectWord(id, index) {
+            selectedId = id;
+            const word = words[index];
+            
+            document.getElementById('editTokenText').value = word.text;
+            document.getElementById('editLemma').value = 
+                word.data.find(d => d[0] === 'lemma')?.[1] || '';
+            document.getElementById('editPos').value = word.tag;
+            document.getElementById('editMember').value = 
+                word.data.find(d => d[0] === 'member')?.[1] || '-';
+            
+            document.getElementById('editPanel').classList.add('active');
+            displayTree();
+        }
+
+        function saveEdit() {
+            if (!selectedId) return;
+
+            const updates = {
+                token_text: document.getElementById('editTokenText').value,
+                lemma: document.getElementById('editLemma').value,
+                pos_ru: document.getElementById('editPos').value,
+                member: document.getElementById('editMember').value
+            };
+
+            showLoading();
+            fetch('/api/update_token', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ token_id: selectedId, updates })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const index = words.findIndex((w, i) => {
+                        const id = w.data.find(d => d[0] === 'id')?.[1];
+                        return id === selectedId;
+                    });
+                    if (index !== -1) {
+                        words[index].text = updates.token_text;
+                        words[index].tag = updates.pos_ru;
+                        const lemmaData = words[index].data.find(d => d[0] === 'lemma');
+                        if (lemmaData) lemmaData[1] = updates.lemma;
+                        const memberData = words[index].data.find(d => d[0] === 'member');
+                        if (memberData) memberData[1] = updates.member;
+                    }
+                    displayTree();
+                    cancelEdit();
+                }
+                hideLoading();
+            });
+        }
+
+        function saveChanges() {
+            showLoading();
+            
+            // Сначала получаем все ID слов
+            const wordIds = words.map(word => 
+                word.data.find(d => d[0] === 'id')?.[1]
+            ).filter(id => id);
+            
+            // Для каждого слова проверяем, есть ли у него входящая связь
+            const promises = wordIds.map(wordId => {
+                // Находим индекс слова
+                const wordIndex = words.findIndex(w => 
+                    w.data.find(d => d[0] === 'id')?.[1] === wordId
+                );
+                
+                // Ищем связь, где это слово является зависимым (end)
+                const incomingArc = arcs.find(arc => arc.end === wordIndex);
+                
+                let updates = {};
+                
+                if (incomingArc) {
+                    // Если есть связь - устанавливаем dep_code и head_id
+                    const parentId = words[incomingArc.start]?.data.find(d => d[0] === 'id')?.[1];
+                    updates = {
+                        dep_code: incomingArc.label,
+                        head_id: parentId
+                    };
+                } else {
+                    // Если связи нет - очищаем поля
+                    updates = {
+                        dep_code: null,
+                        head_id: null
+                    };
+                }
+                
+                return fetch('/api/update_token', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        token_id: wordId, 
+                        updates: updates
+                    })
+                }).then(res => res.json());
+            });
+            
+            Promise.all(promises).then(results => {
+                if (results.every(r => r && r.success)) {
+                    alert('Все изменения сохранены');
+                } else {
+                    alert('Ошибка при сохранении некоторых связей');
+                }
+                hideLoading();
+            }).catch(err => {
+                alert('Ошибка: ' + err.message);
+                hideLoading();
+            });
+        }
+
+        function setMode(newMode) {
+            mode = newMode;
+            linkingFrom = null;
+            document.querySelectorAll('.toolbar button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`mode${newMode[0].toUpperCase() + newMode.slice(1)}`).classList.add('active');
+            
+            const modeNames = {
+                select: 'выбор',
+                move: 'перемещение', 
+                link: 'связь'
+            };
+            document.getElementById('modeIndicator').textContent = `Режим: ${modeNames[newMode]}`;
+        }
+
+        function autoArrange() {
+            const container = document.getElementById('treeContainer');
+            const cw = container.clientWidth || 800;
+            const spacing = words.length > 1 ? (cw - 120) / (words.length - 1) : 200;
+            const s = Math.min(Math.max(spacing, 100), 180);
+            positions = words.map((_, i) => ({ x: 60 + i * s, y: 200 }));
+            displayTree();
+        }
+
+        function zoom(factor) {
+            const svg = document.getElementById('treeCanvas');
+            const vb = svg.getAttribute('viewBox');
+            if (!vb) return;
+            let [x, y, w, h] = vb.split(' ').map(Number);
+            const cx = x + w / 2, cy = y + h / 2;
+            w /= factor; h /= factor;
+            svg.setAttribute('viewBox', `${cx - w/2} ${cy - h/2} ${w} ${h}`);
+        }
+
+        function resetView() {
+            transform = { x: 0, y: 0, scale: 1 };
+            autoArrange();
+        }
+
+        function setupPanAndZoom() {
+            const container = document.getElementById('treeContainer');
+            
+            // Панорамирование с зажатым Ctrl
+            container.addEventListener('mousedown', (e) => {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    isPanning = true;
+                    panStart = { x: e.clientX, y: e.clientY };
+                    container.style.cursor = 'grabbing';
+                }
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                if (isPanning) {
+                    const svg = document.getElementById('treeCanvas');
+                    const vb = svg.getAttribute('viewBox');
+                    if (vb) {
+                        let [x, y, w, h] = vb.split(' ').map(Number);
+                        const dx = (panStart.x - e.clientX) * (w / container.clientWidth);
+                        const dy = (panStart.y - e.clientY) * (h / container.clientHeight);
+                        svg.setAttribute('viewBox', `${x + dx} ${y + dy} ${w} ${h}`);
+                    }
+                    panStart = { x: e.clientX, y: e.clientY };
+                }
+            });
+
+            container.addEventListener('mouseup', () => {
+                isPanning = false;
+                container.style.cursor = 'default';
+            });
+            
+            container.addEventListener('mouseleave', () => {
+                isPanning = false;
+                container.style.cursor = 'default';
+            });
+            
+            // Масштабирование колесиком
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                zoom(e.deltaY > 0 ? 0.9 : 1.1);
+            });
+        }
+
+        function cancelEdit() {
+            document.getElementById('editPanel').classList.remove('active');
+            selectedId = null;
+            displayTree();
+        }
+
+        function updateRelationsList() {
+            const list = document.getElementById('relationsList');
+            list.innerHTML = '';
+
+            arcs.forEach((arc, i) => {
+                const start = words[arc.start]?.text || '?';
+                const end = words[arc.end]?.text || '?';
+                
+                const div = document.createElement('div');
+                div.className = 'relation-item';
+                
+                let select = '<select onchange="updateRelation(' + i + ', this.value)">';
+                for (const [code, label] of Object.entries(DEP_LABELS)) {
+                    select += `<option value="${code}" ${arc.label === code ? 'selected' : ''}>${label}</option>`;
+                }
+                select += '</select>';
+                
+                div.innerHTML = `
+                    <div><strong>${start}</strong> → <strong>${end}</strong></div>
+                    <div style="display: flex; align-items: center;">
+                        ${select}
+                        <span class="relation-delete" onclick="deleteRelation(${i})"></span>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            
+            if (arcs.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #666;">Нет связей. Используйте режим "Связь" для создания.</p>';
+            }
+        }
+
+        function updateRelation(index, label) {
+            if (arcs[index]) {
+                arcs[index].label = label;
+                displayTree();
+            }
+        }
+
+        function deleteRelation(index) {
+            arcs.splice(index, 1);
+            displayTree();
+        }
+
+        function exportToFile() {
+    const exportWords = words.map(w => ({
+        text: w.text,
+        tag: w.tag,
+        data: w.data
+    }));
+    
+    const exportArcs = arcs.map(a => ({...a}));
+    const exportPositions = positions.map(p => ({...p}));
+    
+    fetch('/static/export_template.html')
+        .then(response => {
+            if (!response.ok) throw new Error('Файл шаблона не найден');
+            return response.text();
+        })
+        .then(template => {
+            let html = template
+                .replace('%%WORDS%%', JSON.stringify(exportWords))
+                .replace('%%ARCS%%', JSON.stringify(exportArcs))
+                .replace('%%POSITIONS%%', JSON.stringify(exportPositions));
+            
+            const blob = new Blob([html], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tree_${sentenceId || 'export'}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+        })
+        .catch(err => {
+            console.error('Ошибка:', err);
+            alert('Файл шаблона export_template.html не найден в папке static');
+        });
+}
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function toggleConstituencyTree() {
+            const sentenceId = new URLSearchParams(location.search).get('id');
+            window.open(`/constituency-tree?id=${sentenceId}`, '_blank');
+        }
+    </script>
+</body>
+</html>

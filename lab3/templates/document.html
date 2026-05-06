@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Документ — Синтаксический анализатор</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+        }
+        .header {
+            background: #333;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .header a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            background: #555;
+            border-radius: 0;
+            
+        }
+        .header a:hover { background: #777; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .text-section {
+            background: white;
+            border-radius: 0;
+            padding: 25px;
+            margin-bottom: 30px;
+            
+        }
+        .text-section h2 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 20px;
+        }
+        .text-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 0;
+            line-height: 1.8;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 15px;
+        }
+        .sentences-section {
+            background: white;
+            border-radius: 0;
+            padding: 25px;
+            
+        }
+        .sentences-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 20px;
+        }
+        .sentence-list { list-style: none; }
+        .sentence-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            
+        }
+        .sentence-item:hover { background: #f8f9ff; }
+        .sentence-item:last-child { border-bottom: none; }
+        .sentence-text {
+            flex: 1;
+            font-size: 15px;
+            color: #444;
+            padding-right: 20px;
+        }
+        .sentence-actions { display: flex; gap: 8px; }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 0;
+            border: none;
+            
+            font-size: 13px;
+            text-decoration: none;
+            display: inline-block;
+            
+        }
+        .btn-dep { background: #5f6268; color: white; }
+        .btn-dep:hover { background: #14171a;  }
+        .btn-const { background: #2d342f; color: white; }
+        .btn-const:hover { background: #0e100f;  }
+        .sentence-number {
+            display: inline-block;
+            width: 30px; height: 30px;
+            background: #454751;
+            color: white;
+            border-radius: 0;
+            text-align: center;
+            line-height: 30px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1> {{ doc_name }}</h1>
+        <a href="/">На главную</a>
+    </div>
+    <div class="container">
+        <div class="text-section">
+            <h2> Текст документа</h2>
+            <div class="text-content">{{ text }}</div>
+        </div>
+        <div class="sentences-section">
+            <h2> Предложения для анализа</h2>
+            <ul class="sentence-list">
+                {% for sent in sentences %}
+                <li class="sentence-item">
+                    <span class="sentence-number">{{ sent[2] + 1 }}</span>
+                    <span class="sentence-text">{{ sent[1] }}</span>
+                    <div class="sentence-actions">
+                        <a href="/sentence-tree?id={{ sent[0] }}" class="btn btn-dep" base target="_blank"> Дерево зависимостей</a>
+                        <a href="/constituency-tree?id={{ sent[0] }}" class="btn btn-const" base target="_blank"> Дерево составляющих</a>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

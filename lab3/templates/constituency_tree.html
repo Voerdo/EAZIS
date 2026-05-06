@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Дерево составляющих</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: #111611cc;
+            color: white;
+            padding: 20px 25px;
+            border-radius: 0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-buttons button {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 0;
+            
+            font-size: 14px;
+            
+        }
+        
+        .header-buttons button:hover {
+            background: #777;
+            
+        }
+        
+        .sentence-info {
+            background: white;
+            padding: 20px;
+            border-radius: 0;
+            margin-bottom: 20px;
+            
+        }
+        
+        .sentence-text {
+            font-size: 18px;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-left: 3px solid #333;
+            border-radius: 0;
+            color: #333;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.5;
+        }
+        
+        .tree-container {
+            background: white;
+            padding: 25px;
+            border-radius: 0;
+            overflow-x: auto;
+            
+            max-height: 70vh;
+        }
+        
+        .tree-content {
+            font-family: 'Fira Code', 'Courier New', 'Consolas', monospace;
+            font-size: 13px;
+            background: #fafafa;
+            padding: 25px;
+            border-radius: 0;
+            overflow-x: auto;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .tree-content pre {
+            margin: 0;
+            font-family: inherit;
+            white-space: pre;
+        }
+        
+        .legend {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 0;
+            font-size: 12px;
+            color: #555;
+            
+        }
+        
+        .legend h4 {
+            margin-bottom: 12px;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .legend-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            row-gap: 8px;
+        }
+        
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .legend-tag {
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            
+            background: #222;
+            color: white;
+            padding: 20px 30px;
+            border-radius: 0;
+            display: none;
+            z-index: 1000;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .error {
+            color: #dc3545;
+            padding: 30px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .legend-category {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .legend-category:first-of-type {
+            margin-top: 0;
+        }
+
+        .legend-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            row-gap: 8px;
+        }
+                
+        button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 0;
+            
+            
+            font-size: 13px;
+        }
+        
+        button:hover {
+            background: #5a6268;
+            
+        }
+        
+        ::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 0;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 0;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span></span> 
+                Дерево составляющих
+
+            </h1>
+            <div class="header-buttons">
+                <button onclick="goToDependencyTree()"> Дерево зависимостей</button>
+                <button onclick="window.close()">Назад</button>
+            </div>
+        </div>
+        <div class="sentence-info">
+            <div class="sentence-text" id="sentenceText">
+                <span style="opacity: 0.7;">Загрузка предложения...</span>
+            </div>
+        </div>
+        
+        <div class="tree-container">
+            <div class="tree-content" id="treeContent">
+                <span style="opacity: 0.7;">⏳ Загрузка дерева...</span>
+            </div>
+        </div>
+        
+        <div class="legend">
+    <h4> Расшифровка меток</h4>
+    <div class="legend-grid">
+        <!-- Фразы (синтаксические группы) -->
+        <span class="legend-category">Фразы:</span>
+        <span class="legend-item"><span class="legend-tag">S</span> предложение</span>
+        <span class="legend-item"><span class="legend-tag">SBAR</span> придаточное предложение</span>
+        <span class="legend-item"><span class="legend-tag">NP</span> именная группа</span>
+        <span class="legend-item"><span class="legend-tag">VP</span> глагольная группа</span>
+        <span class="legend-item"><span class="legend-tag">PP</span> предложная группа</span>
+        <span class="legend-item"><span class="legend-tag">ADJP</span> группа прилагательного</span>
+        <span class="legend-item"><span class="legend-tag">ADVP</span> группа наречия</span>
+        <span class="legend-item"><span class="legend-tag">PRN</span> вставная конструкция</span>
+        <span class="legend-item"><span class="legend-tag">INTJ</span> междометие</span>
+        
+        <!-- Существительные -->
+        <span class="legend-category">Существительные:</span>
+        <span class="legend-item"><span class="legend-tag">NN</span> существительное, ед.ч.</span>
+        <span class="legend-item"><span class="legend-tag">NNS</span> существительное, мн.ч.</span>
+        <span class="legend-item"><span class="legend-tag">NNP</span> имя собственное, ед.ч.</span>
+        <span class="legend-item"><span class="legend-tag">NNPS</span> имя собственное, мн.ч.</span>
+        
+        <!-- Глаголы -->
+        <span class="legend-category">Глаголы:</span>
+        <span class="legend-item"><span class="legend-tag">VB</span> глагол (базовая форма)</span>
+        <span class="legend-item"><span class="legend-tag">VBD</span> глагол, прошедшее время</span>
+        <span class="legend-item"><span class="legend-tag">VBG</span> герундий/причастие наст.вр.</span>
+        <span class="legend-item"><span class="legend-tag">VBN</span> причастие прошедшего вр.</span>
+        <span class="legend-item"><span class="legend-tag">VBP</span> глагол, не 3-е лицо</span>
+        <span class="legend-item"><span class="legend-tag">VBZ</span> глагол, 3-е лицо ед.ч.</span>
+        <span class="legend-item"><span class="legend-tag">MD</span> модальный глагол</span>
+        
+        <!-- Прилагательные -->
+        <span class="legend-category">Прилагательные:</span>
+        <span class="legend-item"><span class="legend-tag">JJ</span> прилагательное</span>
+        <span class="legend-item"><span class="legend-tag">JJR</span> сравнит. степень</span>
+        <span class="legend-item"><span class="legend-tag">JJS</span> превосходн. степень</span>
+        
+        <!-- Наречия -->
+        <span class="legend-category">Наречия:</span>
+        <span class="legend-item"><span class="legend-tag">RB</span> наречие</span>
+        <span class="legend-item"><span class="legend-tag">RBR</span> сравнит. степень</span>
+        <span class="legend-item"><span class="legend-tag">RBS</span> превосходн. степень</span>
+        <span class="legend-item"><span class="legend-tag">WRB</span> вопросительное наречие</span>
+        
+        <!-- Местоимения -->
+        <span class="legend-category">Местоимения:</span>
+        <span class="legend-item"><span class="legend-tag">PRP</span> личное местоимение</span>
+        <span class="legend-item"><span class="legend-tag">PRP$</span> притяжательное местоим.</span>
+        <span class="legend-item"><span class="legend-tag">WP</span> вопросит. местоимение</span>
+        <span class="legend-item"><span class="legend-tag">WP$</span> притяжат. вопросит.</span>
+        <span class="legend-item"><span class="legend-tag">WDT</span> вопросит. определитель</span>
+        <span class="legend-item"><span class="legend-tag">EX</span> "there" (оборот)</span>
+        <span class="legend-item"><span class="legend-tag">PDT</span> предопределитель</span>
+        
+        <!-- Союзы и предлоги -->
+        <span class="legend-category">Союзы и предлоги:</span>
+        <span class="legend-item"><span class="legend-tag">CC</span> сочинительный союз</span>
+        <span class="legend-item"><span class="legend-tag">IN</span> предлог/подчинит. союз</span>
+        <span class="legend-item"><span class="legend-tag">TO</span> частица "to"</span>
+        <span class="legend-item"><span class="legend-tag">RP</span> частица фраз. глагола</span>
+        
+        <!-- Другое -->
+        <span class="legend-category">Другое:</span>
+        <span class="legend-item"><span class="legend-tag">DT</span> артикль/определитель</span>
+        <span class="legend-item"><span class="legend-tag">CD</span> числительное</span>
+        <span class="legend-item"><span class="legend-tag">UH</span> междометие</span>
+        <span class="legend-item"><span class="legend-tag">POS</span> притяж. окончание ('s)</span>
+        <span class="legend-item"><span class="legend-tag">FW</span> иностранное слово</span>
+        <span class="legend-item"><span class="legend-tag">LS</span> маркер списка</span>
+        <span class="legend-item"><span class="legend-tag">SYM</span> символ</span>
+    </div>
+</div>
+    </div>
+    
+    <div id="loading" class="loading">
+        <span> Построение дерева...</span>
+    </div>
+    
+    <script>
+        const sentenceId = new URLSearchParams(location.search).get('id');
+        
+        function showLoading() { 
+            document.getElementById('loading').style.display = 'block'; 
+        }
+        function hideLoading() { 
+            document.getElementById('loading').style.display = 'none'; 
+        }
+        
+        function goToDependencyTree() {
+            window.open(`/sentence-tree?id=${sentenceId}`, '_blank');
+        }
+        
+        function exportTree() {
+            const content = document.getElementById('treeContent').innerText;
+            const blob = new Blob([content], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `constituency_tree_${sentenceId}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Парсит скобочную нотацию в объект дерева
+        function parseTreeString(treeString) {
+            let str = treeString.trim();
+            let index = 0;
+            
+            function parseNode() {
+                while (index < str.length && str[index] === ' ') index++;
+                
+                if (str[index] !== '(') {
+                    let start = index;
+                    while (index < str.length && str[index] !== ' ' && str[index] !== ')' && str[index] !== '(') {
+                        index++;
+                    }
+                    let word = str.substring(start, index);
+                    return { label: word, children: [] };
+                }
+                
+                index++;
+                while (index < str.length && str[index] === ' ') index++;
+                
+                let start = index;
+                while (index < str.length && str[index] !== ' ' && str[index] !== '(' && str[index] !== ')') {
+                    index++;
+                }
+                let label = str.substring(start, index);
+                
+                while (index < str.length && str[index] === ' ') index++;
+                
+                let children = [];
+                
+                while (index < str.length && str[index] !== ')') {
+                    if (str[index] === ' ') {
+                        index++;
+                        continue;
+                    }
+                    children.push(parseNode());
+                    while (index < str.length && str[index] === ' ') index++;
+                }
+                
+                index++;
+                
+                return { label: label, children: children };
+            }
+            
+            return parseNode();
+        }
+        
+        // Строит горизонтальное ASCII-дерево с ветками
+        function buildHorizontalTree(node, prefix = "", isLast = true, isRoot = true) {
+            if (!node) return "";
+            
+            let result = "";
+            let label = node.label || "?";
+            
+            let isLeaf = (node.children && node.children.length === 0);
+            let displayLabel = isLeaf ? `"${label}"` : label;
+            
+            if (isRoot) {
+                result += displayLabel + "\n";
+            } else {
+                let connector = isLast ? "└── " : "├── ";
+                result += prefix + connector + displayLabel + "\n";
+            }
+            
+            if (node.children && node.children.length > 0) {
+                let newPrefix = prefix;
+                if (!isRoot) {
+                    newPrefix += isLast ? "    " : "│   ";
+                }
+                
+                for (let i = 0; i < node.children.length; i++) {
+                    let isLastChild = (i === node.children.length - 1);
+                    result += buildHorizontalTree(node.children[i], newPrefix, isLastChild, false);
+                }
+            }
+            
+            return result;
+        }
+        
+        // Главная функция форматирования
+        function formatTree(treeString) {
+            if (!treeString) {
+                return `<div class="error">❌ Нет данных для отображения</div>`;
+            }
+            
+            if (treeString.startsWith("Ошибка") || treeString.startsWith("Дерево составляющих недоступно")) {
+                return `<div class="error">⚠️ ${treeString}</div>`;
+            }
+            
+            try {
+                const treeObj = parseTreeString(treeString);
+                const asciiTree = buildHorizontalTree(treeObj);
+                return `<pre>${asciiTree}</pre>`;
+            } catch (e) {
+                console.error("Parse error:", e);
+                let formatted = treeString
+                    .replace(/\(/g, '\n(')
+                    .replace(/\)/g, ')\n')
+                    .split('\n')
+                    .filter(l => l.trim())
+                    .map(l => {
+                        let depth = (l.match(/\(/g) || []).length - (l.match(/\)/g) || []).length;
+                        return '  '.repeat(Math.max(0, depth)) + l;
+                    })
+                    .join('\n');
+                return `<pre style="color: #dc3545;">${formatted}</pre>`;
+            }
+        }
+        
+        showLoading();
+        fetch(`/api/sentence/${sentenceId}/constituency-tree`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('sentenceText').innerHTML = data.sentence_text || "❌ Предложение не найдено";
+                document.getElementById('treeContent').innerHTML = formatTree(data.tree);
+                hideLoading();
+            })
+            .catch(err => {
+                console.error("Fetch error:", err);
+                document.getElementById('treeContent').innerHTML = `<div class="error">❌ Ошибка загрузки: ${err.message}</div>`;
+                hideLoading();
+            });
+    </script>
+</body>
+</html>

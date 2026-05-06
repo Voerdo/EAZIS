@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Синтаксический анализатор текста</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #333;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+            
+        }
+        .header p {
+            font-size: 18px;
+            opacity: 1;
+        }
+        .upload-section {
+            background: white;
+            border-radius: 0;
+            padding: 40px;
+            
+            margin-bottom: 30px;
+        }
+        .upload-area {
+            border: 2px dashed #999;
+            border-radius: 0;
+            padding: 60px 40px;
+            text-align: center;
+            
+            
+            background: #f8f9ff;
+        }
+        .upload-area:hover {
+            border-color: #333;
+            background: #f5f5f5;
+            
+        }
+        .upload-area.dragover {
+            border-color: #333;
+            background: #f5f5f5;
+        }
+        .upload-icon { font-size: 64px; margin-bottom: 20px; }
+        .upload-text { font-size: 20px; color: #666; margin-bottom: 10px; }
+        .upload-hint { font-size: 14px; color: #999; }
+        .file-input { display: none; }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 0;
+            border: none;
+            
+            font-size: 16px;
+            
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: #333;
+            color: white;
+        }
+        .btn-primary:hover {
+            
+            
+        }
+        .documents-section {
+            background: white;
+            border-radius: 0;
+            padding: 30px;
+            
+        }
+        .documents-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 24px;
+        }
+        .doc-list { list-style: none; }
+        .doc-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            
+        }
+        .doc-item:hover { background: #f8f9ff; }
+        .doc-item:last-child { border-bottom: none; }
+        .doc-info { flex: 1; }
+        .doc-name { font-weight: 600; color: #333; font-size: 16px; }
+        .doc-meta { font-size: 13px; color: #888; margin-top: 4px; }
+        .doc-actions { display: flex; gap: 10px; }
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 0;
+        }
+        .btn-bhelp {
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 0;
+        }
+        .btn-help { background: #4a4a4e; color: white; }
+        .btn-view { background: #0c0d14; color: white; }
+        .btn-view:hover { background: #060917; }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .loading.active { display: block; }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #000000;
+            border-radius: 0;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% {  }
+            100% {  }
+        }
+        .alert {
+            padding: 15px 20px;
+            border-radius: 0;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert.active { display: block; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .empty-state { text-align: center; padding: 40px; color: #999; }
+        .empty-state-icon { font-size: 48px; margin-bottom: 15px; }
+        .help-link {
+            position: fixed;
+            bottom: 30px; right: 30px;
+            background: white; color: #333;
+            width: 60px; height: 60px;
+            border-radius: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            
+            
+            text-decoration: none;
+            
+        }
+        .help-link:hover {   }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> Синтаксический анализатор</h1>
+            <p>Автоматический анализ английских текстов из DOC файлов</p>
+             <div class="doc-actions">
+                <a href="/help" class="btn btn-bhelp btn-help">Справка</a>
+            </div>
+        </div>
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon"></div>
+                <div class="upload-text">Перетащите DOC файл сюда или нажмите для выбора</div>
+                <div class="upload-hint">Поддерживаются форматы .doc и .docx</div>
+                <input type="file" class="file-input" id="fileInput" accept=".doc,.docx">
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Анализируем текст и строим деревья...</p>
+            </div>
+            <div class="alert alert-success" id="alertSuccess"></div>
+            <div class="alert alert-error" id="alertError"></div>
+        </div>
+        <div class="documents-section">
+            <h2> Загруженные документы</h2>
+            <ul class="doc-list" id="docList">
+                <li class="empty-state">
+                    <div class="empty-state-icon"></div>
+                    <p>Пока нет загруженных документов</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const alertSuccess = document.getElementById('alertSuccess');
+        const alertError = document.getElementById('alertError');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) uploadFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) uploadFile(e.target.files[0]);
+        });
+
+        function uploadFile(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['doc', 'docx'].includes(ext)) {
+                showAlert('error', 'Поддерживаются только файлы .doc и .docx');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', file);
+            loading.classList.add('active');
+            uploadArea.style.display = 'none';
+            hideAlerts();
+
+            fetch('/upload', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                loading.classList.remove('active');
+                uploadArea.style.display = 'block';
+                if (data.success) {
+                    showAlert('success', `Файл "${data.filename}" успешно загружен! Метод: ${data.method}. Предложений: ${data.sentence_count}`);
+                    loadDocuments();
+                } else {
+                    showAlert('error', data.error || 'Ошибка загрузки');
+                }
+            })
+            .catch(err => {
+                loading.classList.remove('active');
+                uploadArea.style.display = 'block';
+                showAlert('error', 'Ошибка сети: ' + err.message);
+            });
+        }
+
+        function showAlert(type, message) {
+            hideAlerts();
+            const alert = type === 'success' ? alertSuccess : alertError;
+            alert.textContent = message;
+            alert.classList.add('active');
+            setTimeout(() => alert.classList.remove('active'), 5000);
+        }
+        function hideAlerts() {
+            alertSuccess.classList.remove('active');
+            alertError.classList.remove('active');
+        }
+
+        function loadDocuments() {
+            fetch('/documents')
+            .then(res => res.json())
+            .then(docs => {
+                const list = document.getElementById('docList');
+                if (docs.length === 0) {
+                    list.innerHTML = `<li class="empty-state"><div class="empty-state-icon"></div><p>Пока нет загруженных документов</p></li>`;
+                    return;
+                }
+                list.innerHTML = docs.map(doc => `
+                    <li class="doc-item">
+                        <div class="doc-info">
+                            <div class="doc-name"> ${doc.name}</div>
+                            <div class="doc-meta">
+                                Загружен: ${new Date(doc.date).toLocaleString('ru-RU')} |
+                                Размер: ${formatBytes(doc.size)} |
+                                Предложений: ${doc.sentences}
+                            </div>
+                        </div>
+                        <div class="doc-actions">
+                            <a href="/document/${doc.id}" class="btn btn-small btn-view">Открыть</a>
+                        </div>
+                    </li>
+                `).join('');
+            });
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        loadDocuments();
+    </script>
+</body>
+</html>
