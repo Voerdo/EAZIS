@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование #{{ data.id }}{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h2>Редактирование текста</h2>
+    <p>Файл: {{ data.filename }}</p>
+</div>
+
+<form method="post" class="edit-form">
+    <div class="form-group">
+        <label for="text">Текст документа</label>
+        <textarea name="text" id="text" rows="20">{{ data.raw_text }}</textarea>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <a href="{{ url_for('analysis', id=data.id) }}" class="btn">Отмена</a>
+    </div>
+</form>
+{% endblock %}

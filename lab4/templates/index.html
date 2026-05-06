@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-title">
+    <h2>Загрузка документа</h2>
+    <p>Выберите файл для семантико-синтаксического анализа</p>
+</div>
+
+<div class="upload-zone">
+    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="file">Файл документа</label>
+            <input type="file" name="file" id="file" accept=".doc,.docx,.txt,.rtf,.pdf,.html" required>
+            <small>Поддерживаемые форматы: DOC, DOCX, TXT, RTF, PDF, HTML</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Выполнить анализ</button>
+    </form>
+</div>
+
+<div class="info-block">
+    <h3>О системе</h3>
+    <p>Приложение выполняет автоматический семантико-синтаксический анализ текстов на английском языке.</p>
+    <ul>
+        <li>Токенизация и лемматизация</li>
+        <li>Определение частей речи</li>
+        <li>Синтаксический разбор</li>
+        <li>Семантический разбор</li>
+    </ul>
+</div>
+{% endblock %}
